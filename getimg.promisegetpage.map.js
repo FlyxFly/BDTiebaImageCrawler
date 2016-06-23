@@ -1,7 +1,6 @@
 var startPn=55;//Page number to start from 起始页码
 var everyFetchPageCount=5;//Pages to get at one run. 每次运行处理的页面数量
-//var baseurl="http://tieba.baidu.com/p/4337528809";
-var baseurl="http://tieba.baidu.com/p/4582950580";//Post url. 主贴地址
+var baseurl="http://tieba.baidu.com/p/4337528809";//Post url. 主贴地址
 var directoryName="./img/";//Directory to put img. Must exists or download wil fail. 目录名，要先创建，否则会失败
 
 //That's pretty much all to config. 配置部分完毕
