@@ -1,6 +1,6 @@
-var startPn=55;//Page number to start from 起始页码
-var everyFetchPageCount=5;//Pages to get at one run. 每次运行处理的页面数量
-var baseurl="http://tieba.baidu.com/p/4337528809";//Post url. 主贴地址
+var startPn=1;//Page number to start from 起始页码
+var everyFetchPageCount=1;//Pages to get at one run. 每次运行处理的页面数量
+var baseurl="http://tieba.baidu.com/p/4705071088";//Post url. 主贴地址
 var directoryName="./img/";//Directory to put img. Must exists or download wil fail. 目录名，要先创建，否则会失败
 
 //That's pretty much all to config. 配置部分完毕
@@ -75,6 +75,28 @@ http.get(baseurl, function(res) {
 })
 
 
+function htmlDecode(str)   {   
+  var s = "";   
+  if (str.length == 0) return "";   
+  s = str.replace(/&gt;/g, "&");   
+  s = s.replace(/&lt;/g, "<");   
+  s = s.replace(/&gt;/g, ">");   
+  s = s.replace(/&nbsp;/g, " ");   
+  s = s.replace(/&#39;/g, "\'");   
+  s = s.replace(/&quot;/g, "\"");   
+  s = s.replace(/<br>/g, "\n");   
+  return s;   
+}   
+
+function strProcess(str){
+    var pattern=/\\"/g;
+    var resultstr=str.replace(pattern,"\'");
+    var resultobj=JSON.parse(resultstr);
+    return resultobj;
+    
+}
+
+
 function log(c){
     console.log(c);
     setTimeout(function(){console.log(123)},60000)
@@ -126,11 +148,12 @@ function getImgAsync(url, author, index) {
 
 //返回一个数组，每个元素都是datafield里面的对象
 function getPostDataArray(rawdata){
+    
 	var result=[];
 	var $ = cheerio.load(rawdata);
 	var posts=$(".l_post");
 	posts.each(function(index,item){
-		var post=JSON.parse($(item).attr("data-field"));
+		var post=strProcess($(item).attr("data-field"));
 		result.push(post);
 	})
 	return result;
