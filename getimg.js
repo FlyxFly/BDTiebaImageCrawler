@@ -1,6 +1,6 @@
 var startPn=1;//Page number to start from 起始页码
 var everyFetchPageCount=1;//Pages to get at one run. 每次运行处理的页面数量
-var baseurl="http://tieba.baidu.com/p/4705071088";//Post url. 主贴地址
+var baseurl="http://tieba.baidu.com/p/4760926410";//Post url. 主贴地址
 var directoryName="./img/";//Directory to put img. Must exists or download wil fail. 目录名，要先创建，否则会失败
 
 //That's pretty much all to config. 配置部分完毕
@@ -18,19 +18,25 @@ http.get(baseurl, function(res) {
     });
     res.on("end", function() {
         //主程序
+
         var nullUrlArray=[];
         var lastPage = getLastPage(html); //获取总页数
+
         var pageUrlArray = [];
         var endPage = fetchPage.end < lastPage ? fetchPage.end : lastPage;
+        
         for (var k = fetchPage.start; k <= endPage; k++) {
             var currUrl = baseurl + "?pn=" + k;
             pageUrlArray.push(currUrl);
+
         }
+
         promise.map(pageUrlArray, function(thisUrl) {
             return getPageAsync(thisUrl)
         }, {
-            concurrency: 2
+            concurrency: 1
         }).then(function(resultArr) {
+
             if (resultArr !== null & resultArr!==[]) {
                 resultArr.forEach(function(singlePageHtml) {
                     var postsArray = getPostDataArray(singlePageHtml);
@@ -51,8 +57,8 @@ http.get(baseurl, function(res) {
                                 }).then(function(resultArray) {
                                     resultArray.forEach(function(obj) {
                                         if (obj.content !== "") {
-                                            var filename = directoryName + obj.author + "-" + obj.index + "." + obj.fileext;
-                                            writeImg(filename, obj.content)
+                                            var filename = directoryName + obj.author + "-";
+                                            writeImg(filename,obj.index,obj.fileext, obj.content)
                                         } else {
                                             console.log("发现一个不存在的文件:" + obj.author + "-" + obj.index)
                                         }
@@ -101,7 +107,9 @@ function log(c){
     console.log(c);
     setTimeout(function(){console.log(123)},60000)
 }
+
 function getPageAsync(url) {
+    
     return new promise(function(resolve, reject) {
         console.log("正在处理："+url);
         http.get(url, function(res) {
@@ -175,14 +183,27 @@ function getLastPage(rawdata){
 }
 
 
-function writeImg(file,content){
-	fs.writeFile(file, content,'binary', function(err){if(err){
-		console.error("写入文件出错，原因是： "+err);
-	}
-	console.log("写入文件成功: "+file);
-});
+function writeImg(filename, fileindex, fileext, content) {
+    if(!filename || !fileindex || !fileext || !content){
+        return false;
+    }
+    var flag = 0;
+    do {
+        var finalfilename = filename + fileindex + "." + fileext;
+        if (fs.existsSync(finalfilename)) {
+            fileindex += 1;
+        } else {
+            flag = 1;
+            fs.writeFile(finalfilename, content, 'binary', function(err) {
+                if (err) {
+                    console.error("写入文件出错，原因是： " + err);
+                }
+                console.log("写入文件成功: " + finalfilename);
+            })
+        }
+    }
+    while (flag == 0);
 }
-
 
 function getUserPage(username){
 	return "http://tieba.baidu.com/home/main?un="+encodeURI(username)+"&ie=utf-8";
